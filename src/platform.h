@@ -51,23 +51,27 @@
 #include "config.h"
 
 #if NETWORK_CONTROLLER == ETHERNET_CONTROLLER_W5X00
-#  include <Ethernet.h>
-/** Specifies maximum number of clients connected to server. */
-constexpr uint8_t kMaxConnections{MAX_SOCK_NUM};
+	#  include <Ethernet.h>
+	/** Specifies maximum number of clients connected to server. */
+
+	//modified by Kaushal
+	// constexpr uint8_t kMaxConnections{4};
+	constexpr uint8_t kMaxConnections{MAX_SOCK_NUM};
+
 #elif NETWORK_CONTROLLER == ETHERNET_CONTROLLER_ENC28J60
-#  include <EthernetENC.h>
-constexpr uint8_t kMaxConnections{4};
+	#  include <EthernetENC.h>
+	constexpr uint8_t kMaxConnections{4};
 #elif NETWORK_CONTROLLER == NETWORK_CONTROLLER_WIFI
-#  if PLATFORM_ARCH == PLATFORM_ARCHITECTURE_ESP8266
-#    include <ESP8266WiFi.h>
-#  else
-#    include <WiFi.h>
-#  endif
-#  include <WiFiClient.h>
-#  include <WiFiServer.h>
-constexpr uint8_t kMaxConnections{8};
+	#  if PLATFORM_ARCH == PLATFORM_ARCHITECTURE_ESP8266
+	#    include <ESP8266WiFi.h>
+	#  else
+	#    include <WiFi.h>
+	#  endif
+	#  include <WiFiClient.h>
+	#  include <WiFiServer.h>
+	constexpr uint8_t kMaxConnections{8};
 #else
-#  error "Network controller is required!"
+	#  error "Network controller is required!"
 #endif
 
 /** @cond */

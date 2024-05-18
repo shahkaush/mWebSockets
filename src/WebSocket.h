@@ -254,6 +254,13 @@ public:
   void onMessage(const onMessageCallback &);
 
   void onPing(const onPingCallback &);
+  
+  long lastActivityMillis = 0;			//Added by Kaushal
+  
+  bool isDead() {
+	  if ( ( millis() - lastActivityMillis ) > 10000 ) return true;
+	  return false;
+  }
 
 protected:
   /** @remark Reserved for WebSocketClient. */

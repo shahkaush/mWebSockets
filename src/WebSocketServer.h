@@ -53,6 +53,11 @@ public:
   /** @brief Disconnects all clients. */
   void shutdown();
 
+	String portStat() {
+		return "[PORT: " + String( m_server.server_port[0] ) + "," + String( m_server.server_port[1] ) + "," + String( m_server.server_port[2] ) + "," + String( m_server.server_port[3] ) + "," + String( m_server.server_port[4] ) + "," + String( m_server.server_port[5] ) + "," + String( m_server.server_port[6] ) + "," + String( m_server.server_port[7] ) + "]";
+	}
+
+
   /** @brief Sends message to all connected clients. */
   void broadcast(
     const WebSocket::DataType dataType, const char *message, uint16_t length);
@@ -63,6 +68,13 @@ public:
   /** @return Amount of connected clients. */
   uint8_t countClients() const;
 
+	//added by KAUSHAL
+	uint8_t getZeroSocketNo() {
+		if ( m_sockets[ 0 ] ) {
+			return m_sockets[ 0 ]->m_client.getSocketNumber();
+		} 
+		return -1;
+	}
   /**
    * @brief
    * @code{.cpp}

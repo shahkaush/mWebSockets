@@ -37,15 +37,36 @@ void WebSocketServer::listen() {
   _cleanDeadConnections();
 
   if (auto client = m_server.available(); client) {
+  // if (auto client = m_server.accept(); client) {					//Modified by Kaushal
     if (auto ws = _getWebSocket(client); !ws) {
       // A new client
       bool clientRequestFailed = false;
+	  
+	  // //Logic replaced by kaushal - only 1 m_sockets :L01: START
+	  // char selectedProtocol[32]{};
+	  // if (_handleRequest(client, selectedProtocol)) {
+		// ws = new WebSocket{ client, *selectedProtocol ? selectedProtocol : nullptr};
+		// if (_onConnection) _onConnection(*ws);
+		// if ( m_sockets[ 0 ] ) {
+			// // m_sockets[ 0 ]->close( WebSocket::CloseCode::ABNORMAL_CLOSURE, true );
+			// m_sockets[ 0 ]->terminate();
+			// delay( 100 );
+			// delete m_sockets[ 0 ];
+			// m_sockets[ 0 ] = nullptr;
+		// }
+		// m_server.purgeSocketsOtherThan( ws->m_client.getSocketNumber() );
+		// m_sockets[ 0 ] = ws;
+	  // } else {
+		// clientRequestFailed = true;
+	  // }
+	  
       for (auto &it : m_sockets) {
         if (!it) {
           char selectedProtocol[32]{};
           if (_handleRequest(client, selectedProtocol)) {
             ws = it = new WebSocket{
               client, *selectedProtocol ? selectedProtocol : nullptr};
+			it->lastActivityMillis = millis();									//Added by KAUSHAL
             if (_onConnection) _onConnection(*ws);
           } else {
             clientRequestFailed = true;
@@ -53,6 +74,8 @@ void WebSocketServer::listen() {
           break;
         }
       }
+	  // :L01: END
+	  
       if (!clientRequestFailed && !ws) {
         // Server is full
         _rejectRequest(client, WebSocketError::SERVICE_UNAVAILABLE);
@@ -61,6 +84,7 @@ void WebSocketServer::listen() {
   }
   for (auto it : m_sockets) {
     if (it && it->m_client.connected() && it->m_client.available()) {
+		it->lastActivityMillis = millis();;									//Added by KAUSHAL
       it->_readFrame();
     }
   }
@@ -373,19 +397,26 @@ void WebSocketServer::_acceptRequest(
   encodeSecKey(secKey, buffer + 22);
   client.println(buffer);
 
-  if (protocol[0] != '\0') {
-    // NOTE: Up to 26 characters for protocol value
-    snprintf_P(
-      buffer, sizeof(buffer), (PGM_P)F("Sec-WebSocket-Protocol: %s"), protocol);
-    client.println(buffer);
-  }
+	//COMMENTED BY KAUSHAL
+  // if (protocol[0] != '\0') {
+    // // NOTE: Up to 26 characters for protocol value
+    // snprintf_P(
+      // buffer, sizeof(buffer), (PGM_P)F("Sec-WebSocket-Protocol: %s"), protocol);
+    // client.println(buffer);
+  // }
 
   client.println();
 }
 
 void WebSocketServer::_cleanDeadConnections() {
   for (auto &it : m_sockets) {
-    if (it && !it->isAlive()) {
+    if (it &&     ( ( !it->isAlive() ) || ( it->isDead() ) )         ) {
+		
+		Serial.println( "Terminating " + String( it->m_client.getSocketNumber() ) );
+		//added by Kaushal
+		it->terminate();
+		delay( 100 );
+		
       delete it;
       it = nullptr;
     }
